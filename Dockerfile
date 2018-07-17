@@ -1,2 +1,9 @@
 FROM alpine:3.8
-# VOLUME [ "/tmp", "/run" ]
+
+RUN set -ex \
+  && apk add --no-cache bash \
+  && sed -ri \
+  -e 's!:/bin/ash!:/bin/bash!g' \
+  /etc/passwd
+
+CMD ["/bin/bash"]
