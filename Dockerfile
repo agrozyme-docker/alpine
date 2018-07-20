@@ -6,7 +6,7 @@ RUN set -euxo pipefail \
   && ln -sf /bin/bash /bin/sh
 
 RUN set -euxo pipefail \
-  sed -ri -e 's!:/bin/ash!:/bin/bash!g' /etc/passwd \
+  && sed -ri -e 's!:/bin/ash!:/bin/bash!g' /etc/passwd \
   && export PS1=$(printf '%q' "'\u@\h:\w\$ '") \
   && sed -ri -e "s!export PS1=.*!export PS1=${PS1} !g" /etc/profile
 
