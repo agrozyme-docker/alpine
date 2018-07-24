@@ -4,9 +4,9 @@ RUN set -euxo pipefail \
   && apk add --no-cache shadow bash \
   && rm /bin/sh \
   && ln -sf /bin/bash /bin/sh \
-  && usermod -s /bin/sh root \
   && groupadd -rg 500 core \
-  && useradd -MNr -u 500 -g core -d /dev/null -s /sbin/nologin -c core core
+  && useradd -MNr -u 500 -g core -d /dev/null -s /sbin/nologin -c core core \
+  && usermod -s /bin/sh root
 
 COPY source /
 
