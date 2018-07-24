@@ -1,8 +1,7 @@
 #!/bin/bash
-set -euxo pipefail
+set -euo pipefail
 
 function main() {
-  printenv
   local old_uid=$(id -u core)
   local old_gid=$(id -g core)
   local new_uid=${DOCKER_UID:-${old_uid}}
