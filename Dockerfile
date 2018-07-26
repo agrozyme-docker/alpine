@@ -4,15 +4,15 @@ RUN set -euxo pipefail \
   && apk add --no-cache shadow bash \
   && rm /bin/sh \
   && ln -sf /bin/bash /bin/sh \
+  && usermod -s /bin/sh root \
   && groupadd -rg 500 core \
-  && useradd -MNr -u 500 -g core -d /dev/null -s /sbin/nologin -c core core \
-  && usermod -s /bin/sh root
+  && useradd -MNr -u 500 -g core -d /dev/null -s /sbin/nologin -c core core
 
 COPY source /
 
 RUN set -euxo pipefail \
   && chmod +x /usr/local/bin/*.sh \
-  && export PS1=$(printf '%q' "'\u@\h:\w\$ '") \
-  && sed -ri -e "s!export PS1=.*!export PS1=${PS1} !g" /etc/profile
+  && mv /etc/profile.d/color_prompt /etc/profile.d/color_prompt.sh
 
-CMD ["/bin/bash"]
+ENV ENV=/etc/profile
+CMD ["/bin/sh"]
