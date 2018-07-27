@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-function chang_core() {
+function change_core() {
   local old_uid=$(id -u core)
   local old_gid=$(id -g core)
   local new_uid=${DOCKER_UID:-${old_uid}}
