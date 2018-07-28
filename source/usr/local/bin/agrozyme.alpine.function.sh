@@ -12,13 +12,27 @@ function change_core() {
   # find / -user "${old_uid}" -exec chown -h core {} \;
 }
 
+function empty_folder() {
+  local folder=${1:-}
+  
+  if [[ -z "${folder}" ]]; then
+    return
+  fi
+  
+  rm -rf "${folder}"
+  mkdir -p "${folder}"
+  chown -R core:core "${folder}"
+  shift
+  empty_folder "$@"
+}
+
 function main() {
   local call=${1:-}
-
+  
   if [[ -z $(typeset -F "${call}") ]]; then
     return
   fi
-
+  
   shift
   ${call} "$@"
 }
