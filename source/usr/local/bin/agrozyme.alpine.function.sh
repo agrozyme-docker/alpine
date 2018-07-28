@@ -8,8 +8,6 @@ function change_core() {
   local new_gid=${DOCKER_GID:-${old_gid}}
   groupmod -g "${new_gid}" core
   usermod -u "${new_uid}" core
-  # find / -group "${old_gid}" -exec chgrp -h core {} \;
-  # find / -user "${old_uid}" -exec chown -h core {} \;
 }
 
 function empty_folder() {
