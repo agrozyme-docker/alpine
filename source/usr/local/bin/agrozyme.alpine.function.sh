@@ -10,6 +10,19 @@ function change_core() {
   usermod -u "${new_uid}" core
 }
 
+function make_folder() {
+  local folder=${1:-}
+  
+  if [[ -z "${folder}" ]]; then
+    return
+  fi
+  
+  mkdir -p "${folder}"
+  chown -R core:core "${folder}"
+  shift
+  empty_folder "$@"
+}
+
 function empty_folder() {
   local folder=${1:-}
   
@@ -18,8 +31,7 @@ function empty_folder() {
   fi
   
   rm -rf "${folder}"
-  mkdir -p "${folder}"
-  chown -R core:core "${folder}"
+  make_folder "${folder}"
   shift
   empty_folder "$@"
 }
