@@ -1,4 +1,4 @@
-FROM alpine:3.8
+FROM alpine:edge
 COPY source /
 
 RUN set -euxo pipefail \
