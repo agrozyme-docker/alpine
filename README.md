@@ -3,6 +3,7 @@ Alpine Base Image
 
 # Packages
 - bash
+- rpm
 - shadow
 - su-exec
 - tini
