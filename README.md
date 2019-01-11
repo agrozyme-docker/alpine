@@ -7,6 +7,7 @@ Alpine Base Image
 - shadow
 - su-exec
 - tini
+- curl
 - lua / luarocks
 
 # Setting
