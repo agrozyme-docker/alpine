@@ -7,6 +7,7 @@ Alpine Base Image
 - shadow
 - su-exec
 - tini
+- lua
 
 # Setting
 - add `agrozyme.alpine.function.sh` to change user / group `core` with environment variable `DOCKER_CORE_UID` / `DOCKER_CORE_GID`
