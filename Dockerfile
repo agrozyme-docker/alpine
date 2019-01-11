@@ -4,7 +4,7 @@ COPY source /
 RUN set -euxo pipefail \
   && chmod +rx /usr/local/bin/* \
   && mv /etc/profile.d/color_prompt /etc/profile.d/color_prompt.sh \
-  && apk add --no-cache bash rpm shadow su-exec tini luarocks5.3 \
+  && apk add --no-cache bash rpm shadow su-exec tini curl luarocks5.3 \
   && rm /bin/sh \
   && ln -sf /bin/bash /bin/sh \
   && ln -sf /usr/bin/lua5.3 /usr/bin/lua  \
