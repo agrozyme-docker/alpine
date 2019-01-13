@@ -1,7 +1,6 @@
 FROM alpine:3.8
 COPY source /
-ENV ENV=/etc/profile
-ENV LUA_PATH=";;/usr/local/bin/module/?.lua"
+ENV ENV="/etc/profile" LUA_PATH=";;/usr/local/bin/module/?.lua"
 
 RUN chmod +rx /usr/local/bin/* \
   && apk add --no-cache luarocks5.3 \
@@ -11,5 +10,5 @@ RUN chmod +rx /usr/local/bin/* \
   && ln -sf /usr/bin/luarocks-admin-5.3 /usr/bin/luarocks-admin  \
   && alpine.build.lua
 
-# ENTRYPOINT ["/sbin/tini", "--"]
+ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["/bin/sh"]
