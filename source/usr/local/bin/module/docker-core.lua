@@ -21,6 +21,18 @@ function M.info(text)
   print(color(text, code))
 end
 
+function M.capture(command, raw)
+  local file = assert(io.popen(command, "r"))
+  local text = assert(file:read("*a"))
+  file:close()
+
+  if (raw) then
+    return text
+  end
+
+  return text:gsub("^%s+", ""):gsub("%s+$", ""):gsub("[\n\r]+", " ")
+end
+
 function M.run(command, silent)
   local silent = silent or false
 
@@ -28,21 +40,24 @@ function M.run(command, silent)
     M.info("+ " .. command)
   end
 
-  local state, text = os.execute(command)
-
-  if (state) then
-    return text
-  else
-    M.error(text)
-    os.exit(state)
-  end
+  local _, text = assert(os.execute(command))
+  return text
 end
 
-function M.getnev(name, default)
-  return os.getnev(name) or default
+function M.getenv(name, default)
+  return os.getenv(name) or default
 end
 
-function M.change_core()
+function M.update_core_user()
+  M.info("@ " .. debug.getinfo(1, "n").name)
+
+  local user = {
+    uid = M.getenv("DOCKER_CORE_UID", M.capture("id -u core")),
+    gid = M.getenv("DOCKER_CORE_GID", M.capture("id -g core"))
+  }
+
+  M.run(string.format("groupmod -g %s core", user.gid), true)
+  M.run(string.format("usermod -u %s core", user.uid), true)
 end
 
 return M

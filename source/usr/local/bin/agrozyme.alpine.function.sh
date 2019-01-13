@@ -20,7 +20,7 @@ function make_folder() {
   mkdir -p "${folder}"
   chown -R core:core "${folder}"
   shift
-  empty_folder "$@"
+  make_folder "$@"
 }
 
 function empty_folder() {
