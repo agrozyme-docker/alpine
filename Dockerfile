@@ -1,20 +1,15 @@
 FROM alpine:3.8
 COPY source /
+ENV ENV=/etc/profile
+ENV LUA_PATH=";;/usr/local/bin/module/?.lua"
 
-RUN set -euxo pipefail \
-  && chmod +rx /usr/local/bin/* \
-  && mv /etc/profile.d/color_prompt /etc/profile.d/color_prompt.sh \
-  && apk add --no-cache bash rpm shadow su-exec tini curl luarocks5.3 \
-  && rm /bin/sh \
-  && ln -sf /bin/bash /bin/sh \
+RUN chmod +rx /usr/local/bin/* \
+  && apk add --no-cache luarocks5.3 \
   && ln -sf /usr/bin/lua5.3 /usr/bin/lua  \
   && ln -sf /usr/bin/luac5.3 /usr/bin/luac  \
   && ln -sf /usr/bin/luarocks-5.3 /usr/bin/luarocks  \
   && ln -sf /usr/bin/luarocks-admin-5.3 /usr/bin/luarocks-admin  \
-  && usermod -s /bin/sh root \
-  && groupadd -rg 500 core \
-  && useradd -Nr -u 500 -g core -s /bin/sh -c core core
+  && alpine.build.lua
 
-ENV ENV=/etc/profile
-ENTRYPOINT ["/sbin/tini", "--"]
+# ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["/bin/sh"]
