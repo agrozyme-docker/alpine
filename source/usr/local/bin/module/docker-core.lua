@@ -58,8 +58,10 @@ function M.getenv(name, default)
   return os.getenv(name) or default
 end
 
-local function join(list, separator)
+local function info(name, ...)
+  local list = {...}
   local total = #list
+  local separator = ", "
   local items = {}
 
   for index, item in pairs(list) do
@@ -74,11 +76,7 @@ local function join(list, separator)
     end
   end
 
-  return table.concat(items)
-end
-
-local function info(name, ...)
-  M.info("@ " .. name .. "(" .. join({...}, ", ") .. ")")
+  M.info("@ " .. name .. "(" .. table.concat(items) .. ")")
 end
 
 function M.updateUser()
