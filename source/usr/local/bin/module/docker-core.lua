@@ -33,6 +33,17 @@ function M.capture(command, raw)
   return text:gsub("^%s+", ""):gsub("%s+$", ""):gsub("[\n\r]+", " ")
 end
 
+function M.test(...)
+  local command = "test " .. string.format(...)
+  return os.execute(command)
+end
+
+function M.execute(...)
+  local command = string.format(...)
+  local _, text = assert(os.execute(command))
+  return text
+end
+
 function M.run(command, silent)
   local silent = silent or false
 
@@ -40,16 +51,39 @@ function M.run(command, silent)
     M.info("+ " .. command)
   end
 
-  local _, text = assert(os.execute(command))
-  return text
+  return M.execute(command)
 end
 
 function M.getenv(name, default)
   return os.getenv(name) or default
 end
 
-function M.update_core_user()
-  M.info("@ " .. debug.getinfo(1, "n").name)
+local function join(list, separator)
+  local total = #list
+  local items = {}
+
+  for index, item in pairs(list) do
+    if ("string" == type(item)) then
+      item = '"' .. item .. '"'
+    end
+
+    table.insert(items, item)
+
+    if (index < total) then
+      table.insert(items, separator)
+    end
+  end
+
+  return table.concat(items)
+end
+
+local function info(name, ...)
+  M.info("@ " .. name .. "(" .. join({...}, ", ") .. ")")
+end
+
+function M.updateUser()
+  local name = debug.getinfo(1, "n").name
+  info(name)
 
   local user = {
     uid = M.getenv("DOCKER_CORE_UID", M.capture("id -u core")),
@@ -58,6 +92,25 @@ function M.update_core_user()
 
   M.run(string.format("groupmod -g %s core", user.gid), true)
   M.run(string.format("usermod -u %s core", user.uid), true)
+end
+
+function M.clearPath(...)
+  local handler = function(item)
+    if (M.test("-z %s", item)) then
+      return
+    end
+
+    M.execute("rm -rf %s", item)
+    M.execute("mkdir -p %s", item)
+    M.execute("chown -R core:core %s", item)
+  end
+
+  local name = debug.getinfo(1, "n").name
+  info(name, ...)
+
+  for _, item in pairs({...}) do
+    handler(item)
+  end
 end
 
 return M
