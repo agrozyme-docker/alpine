@@ -67,7 +67,7 @@ local function join(list, separator)
       item = '"' .. item .. '"'
     end
 
-    table.insert(items, item)
+    table.insert(items, tostring(item))
 
     if (index < total) then
       table.insert(items, separator)
