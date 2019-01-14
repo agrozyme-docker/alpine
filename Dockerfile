@@ -9,7 +9,7 @@ RUN set -uxo pipefail \
   && ln -sf /usr/bin/luac5.3 /usr/bin/luac  \
   && ln -sf /usr/bin/luarocks-5.3 /usr/bin/luarocks  \
   && ln -sf /usr/bin/luarocks-admin-5.3 /usr/bin/luarocks-admin  \
-  && alpine.build.lua
+  && lua /usr/local/bin/build/alpine.lua
 
 ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["/bin/sh"]
