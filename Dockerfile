@@ -3,7 +3,6 @@ COPY source /
 ENV ENV="/etc/profile" LUA_PATH=";;/usr/local/bin/module/?.lua"
 
 RUN set -uxo pipefail \
-  && chmod +rx /usr/local/bin/* \
   && apk add --no-cache luarocks5.3 \
   && ln -sf /usr/bin/lua5.3 /usr/bin/lua  \
   && ln -sf /usr/bin/luac5.3 /usr/bin/luac  \
