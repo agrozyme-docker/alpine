@@ -2,7 +2,6 @@
 Alpine Base Image
 
 # Packages
-- bash
 - su-exec
 - tini
 - curl
