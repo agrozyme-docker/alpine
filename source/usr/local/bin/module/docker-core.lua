@@ -90,9 +90,11 @@ function M.get_env_table(items)
 end
 
 function M.update_user()
-  local item = M.get_env_table({DOCKER_CORE_UID = M.capture("id -u core"), DOCKER_CORE_GID = M.capture("id -g core")})
-  M.execute("groupmod -g %s core", item.DOCKER_CORE_GID)
-  M.execute("usermod -u %s core", item.DOCKER_CORE_UID)
+  local item = M.get_env_table({DOCKER_CORE_UID = 500, DOCKER_CORE_GID = 500})
+  os.execute("deluser core")
+  os.execute("delgroup core")
+  M.execute("addgroup -Sg 500 core")
+  M.execute("adduser -DHS -G core -g core -s /bin/sh -u 500 core")
 end
 
 function M.chown(...)
