@@ -17,15 +17,15 @@ Alpine Base Image
 - some function to help build docker image and startup command in module `docker-core.lua`
 
 # Script Paths
-- /usr/local/bin
-  - put `CMD` script here
-  - in `Dockerfile` add statement `CMD ["/usr/local/bin/{command}.lua"]`
-- /usr/local/bin/build
-  - put `docker build` script here
-  - in `Dockerfile` add statement `RUN lua /usr/local/bin/build/{build}.lua`
-- /usr/local/bin/module
-  - put custom module scripts here
-  - in other script file add statement `local module = require("{module}")` to use.
+## /usr/local/bin
+- put `CMD` script here
+- in `Dockerfile` add statement `CMD ["/usr/local/bin/{command}.lua"]`
+## /usr/local/bin/build
+- put `docker build` script here
+- in `Dockerfile` add statement `RUN lua /usr/local/bin/build/{build}.lua`
+## /usr/local/bin/module
+- put custom module scripts here
+- in other script file add statement `local module = require("{module}")` to use.
 
 # Core User
 - use `root` user to run container
@@ -36,8 +36,8 @@ Alpine Base Image
 - use `docker-core` module in `CMD` script and call `update_user()` to change user / group `core` with environment variable `DOCKER_CORE_UID` / `DOCKER_CORE_GID`
 - if service can not assign user to execute, we can use `su-exec core` to execute the service
 
-# Example
-for `docker build` script
+# Examples
+## For `docker build` script
 ```lua
 #!/usr/bin/lua
 
@@ -50,7 +50,7 @@ end
 main()
 ```
 
-for `CMD` script
+## For `CMD` script
 ```lua
 #!/usr/bin/lua
 
