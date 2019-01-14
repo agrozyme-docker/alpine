@@ -1,36 +1,61 @@
 local M = {}
 
 local function color(text, code)
-  local prefix = string.char(27) .. "[" .. code .. "m"
-  local suffix = string.char(27) .. "[0m"
+  local escape = string.char(27)
+  local prefix = escape .. "[" .. code .. "m"
+  local suffix = escape .. "[0m"
   return prefix .. text .. suffix
 end
 
-function M.error(text)
+function M.error(...)
   local code = "31"
+  local text = string.format(...)
   print(color(text, code))
 end
 
-function M.warn(text)
+function M.warn(...)
   local code = "33"
+  local text = string.format(...)
   print(color(text, code))
 end
 
-function M.info(text)
+function M.info(...)
   local code = "32"
+  local text = string.format(...)
   print(color(text, code))
 end
 
-function M.capture(command, raw)
+function M.debug(...)
+  local list = {...}
+  local total = #list
+  local items = {"@ ", debug.getinfo(2, "n").name, "("}
+
+  for index, item in pairs(list) do
+    if ("string" == type(item)) then
+      item = '"' .. item .. '"'
+    end
+
+    items[#items + 1] = tostring(item)
+
+    if (index < total) then
+      items[#items + 1] = ", "
+    end
+  end
+
+  items[#items + 1] = ")"
+  M.info(table.concat(items))
+end
+
+function M.capture_raw(...)
+  local command = string.format(...)
   local file = assert(io.popen(command, "r"))
   local text = assert(file:read("*a"))
   file:close()
+  return text
+end
 
-  if (raw) then
-    return text
-  end
-
-  return text:gsub("^%s+", ""):gsub("%s+$", ""):gsub("[\n\r]+", " ")
+function M.capture(...)
+  return M.capture_raw(...):gsub("^%s+", ""):gsub("%s+$", ""):gsub("[\n\r]+", " ")
 end
 
 function M.test(...)
@@ -44,13 +69,9 @@ function M.execute(...)
   return text
 end
 
-function M.run(command, silent)
-  local silent = silent or false
-
-  if (false == silent) then
-    M.info("+ " .. command)
-  end
-
+function M.run(...)
+  local command = string.format(...)
+  M.info("+ %s", command)
   return M.execute(command)
 end
 
@@ -58,56 +79,48 @@ function M.getenv(name, default)
   return os.getenv(name) or default
 end
 
-local function info(name, ...)
-  local list = {...}
-  local total = #list
-  local separator = ", "
-  local items = {}
+function M.get_env_table(items)
+  local result = {}
 
-  for index, item in pairs(list) do
-    if ("string" == type(item)) then
-      item = '"' .. item .. '"'
-    end
-
-    table.insert(items, tostring(item))
-
-    if (index < total) then
-      table.insert(items, separator)
-    end
+  for index, item in pairs(items) do
+    result[index] = M.getenv(index, item)
   end
 
-  M.info("@ " .. name .. "(" .. table.concat(items) .. ")")
+  return result
 end
 
-function M.updateUser()
-  local name = debug.getinfo(1, "n").name
-  info(name)
-
-  local user = {
-    uid = M.getenv("DOCKER_CORE_UID", M.capture("id -u core")),
-    gid = M.getenv("DOCKER_CORE_GID", M.capture("id -g core"))
-  }
-
-  M.run(string.format("groupmod -g %s core", user.gid), true)
-  M.run(string.format("usermod -u %s core", user.uid), true)
+function M.update_user()
+  local item = M.get_env_table({DOCKER_CORE_UID = M.capture("id -u core"), DOCKER_CORE_GID = M.capture("id -g core")})
+  M.execute("groupmod -g %s core", item.DOCKER_CORE_GID)
+  M.execute("usermod -u %s core", item.DOCKER_CORE_UID)
 end
 
-function M.clearPath(...)
-  local handler = function(item)
-    if (M.test("-z %s", item)) then
-      return
-    end
-
-    M.execute("rm -rf %s", item)
-    M.execute("mkdir -p %s", item)
-    M.execute("chown -R core:core %s", item)
-  end
-
-  local name = debug.getinfo(1, "n").name
-  info(name, ...)
-
+function M.chown(...)
   for _, item in pairs({...}) do
-    handler(item)
+    if (M.test("-e %s", item)) then
+      M.execute("chown -R core:core %s", item)
+    end
+  end
+end
+
+function M.mkdir(...)
+  for _, item in pairs({...}) do
+    if (M.test("! -e %s", item)) then
+      M.execute("mkdir -p %s", item)
+    end
+
+    M.chown(item)
+  end
+end
+
+function M.clear_path(...)
+  for _, item in pairs({...}) do
+    if (M.test("-z %s", item)) then
+      M.chown(item)
+    else
+      M.execute("rm -rf %s", item)
+      M.mkdir(item)
+    end
   end
 end
 
