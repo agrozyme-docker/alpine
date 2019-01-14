@@ -34,6 +34,7 @@ Alpine Base Image
 - default UID: 500
 - default GID: 500
 - use `docker-core` module in `CMD` script and call `update_user()` to change user / group `core` with environment variable `DOCKER_CORE_UID` / `DOCKER_CORE_GID`
+- if service can not assign user to execute, we can use `su-exec core` to execute the service
 
 # Example
 for `docker build` script
