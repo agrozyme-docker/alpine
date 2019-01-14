@@ -1,5 +1,5 @@
 FROM alpine:3.8
-COPY source /
+COPY rootfs /
 ENV ENV="/etc/profile" LUA_PATH=";;/usr/local/bin/module/?.lua"
 
 RUN set -uxo pipefail \
