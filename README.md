@@ -12,32 +12,37 @@ Alpine Base Image
 - DOCKER_CORE_GID
 
 # Lua
-- Use lua script to replace shell script
+- replace shell scripts with lua scripts
+  - lua (0.86MB) is small than bash (3.82MB)
+  - lua has good data types and easy of use
+  - lua has better errors and process handling
+  - lua has a package manager (luarocks)
+  - use the lua standard libraries to avoid platform differences
 - use `luarocks install` to install lua package
-- some function to help build docker image and startup command in module `docker-core.lua`
+- some functions to help build docker images and start commands in module `docker-core.lua`
 
 # Script Paths
 ## /usr/local/bin
 - put `CMD` script here
-- in `Dockerfile` add statement `CMD ["/usr/local/bin/{command}.lua"]`
+- add the statement `CMD ["/usr/local/bin/{command}.lua"]` to `Dockerfile`
 ## /usr/local/bin/build
 - put `docker build` script here
-- in `Dockerfile` add statement `RUN lua /usr/local/bin/build/{build}.lua`
+- add the statement `RUN lua /usr/local/bin/build/{build}.lua` to `Dockerfile`
 ## /usr/local/bin/module
 - put custom module scripts here
-- in other script file add statement `local module = require("{module}")` to use.
+- add the statement `local module = require("{module}")` to other scripts
 
 # Core User
-- use `root` user to run container
-- use `core` user to run service which in container
-- simple mapping host OS user by setting environment variables `DOCKER_CORE_UID` / `DOCKER_CORE_GID`
+- run the container with the `root` user
+- run the service in the container with the `core` user
+- simply map the host OS user by setting environment variables `DOCKER_CORE_UID` / `DOCKER_CORE_GID`
 - default UID: 500
 - default GID: 500
-- use `docker-core` module in `CMD` script and call `update_user()` to change UID / GID of `core` with environment variable `DOCKER_CORE_UID` / `DOCKER_CORE_GID`
-- if service can not assign user to execute, we can use `su-exec core` to execute the service
+- use the `docker-core` module in the `CMD` script and call `update_user()` to change UID / GID of `core` using the environment variable `DOCKER_CORE_UID` / `DOCKER_CORE_GID`
+- if the service can not be run as a custom user, we can use `su-exec core` to execute the service
 
 # Examples
-## For `docker build` script
+## For the `docker build` script
 ```lua
 #!/usr/bin/lua
 
@@ -50,7 +55,7 @@ end
 main()
 ```
 
-## For `CMD` script
+## For the `CMD` script
 ```lua
 #!/usr/bin/lua
 
