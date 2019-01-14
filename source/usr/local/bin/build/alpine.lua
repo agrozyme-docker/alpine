@@ -4,7 +4,6 @@ local function main()
   local core = require("docker-core")
   core.run("apk add --no-cache su-exec tini curl")
   core.run("mv /etc/profile.d/color_prompt /etc/profile.d/color_prompt.sh")
-  core.run("ln -sf /bin/bash /bin/sh")
   core.update_user()
 end
 
