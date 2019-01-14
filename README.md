@@ -24,15 +24,16 @@ Alpine Base Image
   - put `docker build` script here
   - in `Dockerfile` add statement `RUN lua /usr/local/bin/build/{build}.lua`
 - /usr/local/bin/module
-  - put module scripts here
+  - put custom module scripts here
   - in other script file add statement `local module = require("{module}")` to use.
 
 # Core User
+- use `root` user to run container
 - use `core` user to run service which in container
 - simple mapping host OS user by setting environment variables `DOCKER_CORE_UID` / `DOCKER_CORE_GID`
 - default UID: 500
 - default GID: 500
-- use `docker-core` module in `CMD` script call `update_user()` to change user / group `core` with environment variable `DOCKER_CORE_UID` / `DOCKER_CORE_GID`
+- use `docker-core` module in `CMD` script and call `update_user()` to change user / group `core` with environment variable `DOCKER_CORE_UID` / `DOCKER_CORE_GID`
 
 # Example
 for `docker build` script
