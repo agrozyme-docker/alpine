@@ -11,13 +11,6 @@ Alpine Base Image
 - DOCKER_CORE_UID
 - DOCKER_CORE_GID
 
-# Core User
-- use `core` user to run service which in container
-- simple mapping host OS user by setting environment variables `DOCKER_CORE_UID` / `DOCKER_CORE_GID`
-- default UID: 500
-- default GID: 500
-- use `docker-core.lua` and call `update_user()` to change user / group `core` with environment variable `DOCKER_CORE_UID` / `DOCKER_CORE_GID`
-
 # Lua
 - Use lua script to replace shell script
 - use `luarocks install` to install lua package
@@ -33,3 +26,37 @@ Alpine Base Image
 - /usr/local/bin/module
   - put module scripts here
   - in other script file add statement `local module = require("{module}")` to use.
+
+# Core User
+- use `core` user to run service which in container
+- simple mapping host OS user by setting environment variables `DOCKER_CORE_UID` / `DOCKER_CORE_GID`
+- default UID: 500
+- default GID: 500
+- use `docker-core` module in `CMD` script call `update_user()` to change user / group `core` with environment variable `DOCKER_CORE_UID` / `DOCKER_CORE_GID`
+
+# Example
+for `docker build` script
+```lua
+#!/usr/bin/lua
+
+local function main()
+  local core = require("docker-core")
+  core.run("apk add --no-cache su-exec tini curl")
+  core.run("mv /etc/profile.d/color_prompt /etc/profile.d/color_prompt.sh")
+end
+
+main()
+```
+
+for `CMD` script
+```lua
+#!/usr/bin/lua
+
+local function main()
+  local core = require("docker-core")
+  core.update_user()
+  core.run("/bin/sh")
+end
+
+main()
+```
