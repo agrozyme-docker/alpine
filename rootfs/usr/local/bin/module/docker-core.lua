@@ -166,4 +166,15 @@ function M.replace_files(...)
   end
 end
 
+function M.has_modules(...)
+  local items = {...}
+  local handler = function()
+    for _, item in pairs(items) do
+      require(item)
+    end
+  end
+
+  return pcall(handler)
+end
+
 return M
