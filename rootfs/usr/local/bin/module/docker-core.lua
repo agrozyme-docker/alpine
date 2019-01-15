@@ -147,12 +147,23 @@ function M.append_file(name, ...)
   return file:close()
 end
 
-function M.replace_file(target)
-  local index = assert(target:find("/[^/]*$"))
-  local path = target:sub(1, index)
-  local file = target:sub(index + 1)
-  local source = path .. "." .. file
-  M.run("mv -f %s %s", source, target)
+function M.replace_files(...)
+  local handler = function(target)
+    local index = target:find("/[^/]*$")
+
+    if (not index) then
+      return
+    end
+
+    local path = target:sub(1, index)
+    local file = target:sub(index + 1)
+    local source = path .. "." .. file
+    M.execute("mv -f %s %s", source, target)
+  end
+
+  for _, target in pairs({...}) do
+    handler(target)
+  end
 end
 
 return M
