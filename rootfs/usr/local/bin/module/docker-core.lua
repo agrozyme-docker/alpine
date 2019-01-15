@@ -126,4 +126,25 @@ function M.clear_path(...)
   end
 end
 
+function M.read_file(name)
+  local file = assert(io.open(name, "r"))
+  local text = file:read("a")
+  file:close()
+  return text
+end
+
+function M.write_file(name, ...)
+  local file = assert(io.open(name, "w"))
+  file:write(...)
+  file:flush()
+  return file:close()
+end
+
+function M.append_file(name, ...)
+  local file = assert(io.open(name, "a"))
+  file:write(...)
+  file:flush()
+  return file:close()
+end
+
 return M
