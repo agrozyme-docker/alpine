@@ -149,8 +149,8 @@ end
 
 function M.replace_file(target, backup)
   local index = target:find("/", -1, true)
-  local path = target:sup(1, index)
-  local file = target:sup(index + 1)
+  local path = target:sub(1, index)
+  local file = target:sub(index + 1)
   local options = ""
 
   if (backup) then
