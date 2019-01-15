@@ -148,16 +148,17 @@ function M.append_file(name, ...)
 end
 
 function M.replace_file(target, backup)
-  local index = target:find("/", -1, true)
+  local index = assert(target:find("/[^/]*$"))
+  local options = ""
   local path = target:sub(1, index)
   local file = target:sub(index + 1)
+  local source = path .. "." .. file
   local options = ""
 
   if (backup) then
     options = "-b --suffix=." .. backup
   end
 
-  local source = path .. "." .. file
   M.run("mv -f %s %s %s", options, source, target)
 end
 
