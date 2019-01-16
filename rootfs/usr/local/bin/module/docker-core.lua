@@ -168,15 +168,13 @@ function M.replace_files(requires, updates)
     local path = target:sub(1, index)
     local file = target:sub(index + 1)
     local source = path .. "." .. file
-    M.execute("mv -f %s %s", source, target)
+    M.run("mv -f %s %s", source, target)
   end
 
   for target, update in pairs(updates) do
     if (state) then
-      M.warn("update: %s", target)
       update(target, items)
     else
-      M.warn("replace: %s", target)
       handler(target)
     end
   end
@@ -195,11 +193,11 @@ end
 
 function M.link_log(stdout, stderr)
   if (stdout) then
-    M.execute("ln -sf /dev/stdout %s", stdout)
+    M.run("ln -sf /dev/stdout %s", stdout)
   end
 
   if (stderr) then
-    M.execute("ln -sf /dev/stderr %s", stderr)
+    M.rnu("ln -sf /dev/stderr %s", stderr)
   end
 end
 
