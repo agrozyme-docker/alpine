@@ -187,4 +187,39 @@ function M.link_log(stdout, stderr)
   end
 end
 
+function M.trim(text)
+  return text:match("^()%s*$") and "" or text:match("^%s*(.*%S)")
+end
+
+function M.to_bool(item)
+  local type = type(item)
+  local switch = {
+    ["nil"] = function(item)
+      return false
+    end,
+    ["number"] = function(item)
+      return (0 ~= item)
+    end,
+    ["string"] = function(item)
+      local allowed = {["TRUE"] = true, ["YES"] = true, ["ON"] = true}
+      local text = string.upper(M.trim(item))
+
+      if (allowed[text]) then
+        return true
+      else
+        return false
+      end
+    end,
+    ["boolean"] = function(item)
+      return item
+    end
+  }
+
+  if (switch[type]) then
+    return switch[type](item)
+  else
+    return true
+  end
+end
+
 return M
