@@ -171,7 +171,7 @@ function M.replace_files(requires, updates)
     M.execute("mv -f %s %s", source, target)
   end
 
-  for target, update in updates do
+  for target, update in pairs(updates) do
     if (state) then
       update(target, items)
     else
