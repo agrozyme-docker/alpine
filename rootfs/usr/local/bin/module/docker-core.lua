@@ -197,7 +197,7 @@ function M.link_log(stdout, stderr)
   end
 
   if (stderr) then
-    M.rnu("ln -sf /dev/stderr %s", stderr)
+    M.run("ln -sf /dev/stderr %s", stderr)
   end
 end
 
