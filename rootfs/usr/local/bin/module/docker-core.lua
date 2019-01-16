@@ -173,6 +173,7 @@ function M.replace_files(requires, updates)
 
   for target, update in pairs(updates) do
     if (state) then
+      M.info("+ update: %s", target)
       update(target, items)
     else
       handler(target)
@@ -197,7 +198,7 @@ function M.link_log(stdout, stderr)
   end
 
   if (stderr) then
-    M.rnu("ln -sf /dev/stderr %s", stderr)
+    M.run("ln -sf /dev/stderr %s", stderr)
   end
 end
 
