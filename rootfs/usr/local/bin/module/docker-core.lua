@@ -70,9 +70,8 @@ function M.execute(...)
 end
 
 function M.run(...)
-  local command = string.format(...)
-  M.info("+ %s", command)
-  return M.execute(command)
+  M.info("+ %s", string.format(...))
+  return M.execute(...)
 end
 
 function M.getenv(name, default)
