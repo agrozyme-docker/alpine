@@ -11,27 +11,6 @@ Alpine Base Image
 - DOCKER_CORE_UID
 - DOCKER_CORE_GID
 
-# Lua
-- replace shell scripts with lua scripts
-  - lua (0.86MB) is small than bash (3.82MB)
-  - lua has good data types and easy of use
-  - lua has better errors and process handling
-  - lua has a package manager (luarocks)
-  - use the lua standard libraries to avoid platform differences
-- use `luarocks install` to install lua package
-- some functions to help build docker images and start commands in module `docker-core.lua`
-
-# Script Paths
-## /usr/local/bin
-- put `CMD` script here
-- add the statement `CMD ["/usr/local/bin/{command}.lua"]` to `Dockerfile`
-## /usr/local/bin/build
-- put `docker build` script here
-- add the statement `RUN lua /usr/local/bin/build/{build}.lua` to `Dockerfile`
-## /usr/local/bin/module
-- put custom module scripts here
-- add the statement `local module = require("{module}")` to other scripts
-
 # Core User
 - run the container with the `root` user
 - run the service in the container with the `core` user
@@ -41,8 +20,35 @@ Alpine Base Image
 - use the `docker-core` module in the `CMD` script and call `update_user()` to change UID / GID of `core` using the environment variable `DOCKER_CORE_UID` / `DOCKER_CORE_GID`
 - if the service can not be run as a custom user, we can use `su-exec core` to execute the service
 
-# Examples
-## For the `docker build` script
+# Lua
+- replace shell scripts with lua scripts
+  - lua (0.86MB) is small than bash (3.82MB)
+  - lua has good data types and easy of use
+  - lua has better errors and process handling
+  - lua has a package manager (luarocks)
+  - use the lua standard libraries to avoid platform differences
+- use `luarocks install` to install lua package
+
+## Scripts
+### /usr/local/bin/module/docker-core.lua
+- some functions to help build docker images and start commands
+
+### /usr/local/bin/docker-build.lua
+- `docker build` script
+- add the statement `RUN /usr/local/bin/build/docker-build.lua` to `Dockerfile`
+- each `Dockerfile` use `COPY` or `ADD` statement to overwrite the script
+
+## Paths
+### /usr/local/bin
+- put `CMD` script here
+- add the statement `CMD ["/usr/local/bin/{command}.lua"]` to `Dockerfile`
+
+### /usr/local/bin/module
+- put custom module scripts here
+- add the statement `local module = require("{module}")` to other scripts
+
+## Examples
+### docker-build.lua
 ```lua
 #!/usr/bin/lua
 
@@ -55,7 +61,7 @@ end
 main()
 ```
 
-## For the `CMD` script
+### For the `CMD` script
 ```lua
 #!/usr/bin/lua
 
