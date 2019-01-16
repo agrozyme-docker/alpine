@@ -173,8 +173,10 @@ function M.replace_files(requires, updates)
 
   for target, update in pairs(updates) do
     if (state) then
+      M.warn("update: %s", target)
       update(target, items)
     else
+      M.warn("replace: %s", target)
       handler(target)
     end
   end
