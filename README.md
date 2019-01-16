@@ -36,18 +36,30 @@ Alpine Base Image
 ### /usr/local/bin/docker-build.lua
 - `docker build` script
 - add the statement `RUN set +e -uxo pipefail && chmod +x /usr/local/bin/* && /usr/local/bin/docker-build.lua` to `Dockerfile`
-- each `Dockerfile` use `COPY` or `ADD` statement to overwrite the script
+
+### /usr/local/bin/docker-run.lua
+- `docker run` script
+- add the statement `CMD ["/usr/local/bin/docker-run.lua"]` to `Dockerfile`
 
 ## Paths
 ### /usr/local/bin
 - put `CMD` script here
-- add the statement `CMD ["/usr/local/bin/{command}.lua"]` to `Dockerfile`
+- use `docker run -it --rm {image} {command}` to execute the script
 
 ### /usr/local/bin/module
 - put custom module scripts here
 - add the statement `local module = require("{module}")` to other scripts
 
 ## Examples
+
+### Dockerfile
+```dockerfile
+FROM alpine
+COPY rootfs /
+RUN set +e -uxo pipefail && chmod +x /usr/local/bin/* && /usr/local/bin/docker-build.lua
+CMD ["/usr/local/bin/docker-run.lua"]
+```
+
 ### docker-build.lua
 ```lua
 #!/usr/bin/lua
@@ -61,7 +73,7 @@ end
 main()
 ```
 
-### For the `CMD` script
+### docker-run.lua
 ```lua
 #!/usr/bin/lua
 
