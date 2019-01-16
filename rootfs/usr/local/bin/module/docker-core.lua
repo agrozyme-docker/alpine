@@ -92,8 +92,8 @@ function M.update_user()
   local item = M.get_env_table({DOCKER_CORE_UID = 500, DOCKER_CORE_GID = 500})
   os.execute("deluser core")
   os.execute("delgroup core")
-  M.execute("addgroup -Sg 500 core")
-  M.execute("adduser -DHS -G core -g core -s /bin/sh -u 500 core")
+  M.execute("addgroup -Sg %s core", item.DOCKER_CORE_GID)
+  M.execute("adduser -DHS -G core -g core -s /bin/sh -u %s core", item.DOCKER_CORE_UID)
 end
 
 function M.chown(...)
@@ -196,11 +196,11 @@ function M.boolean(item)
     ["nil"] = function(item)
       return false
     end,
-    ["number"] = function(item)
+    number = function(item)
       return (0 ~= item)
     end,
-    ["string"] = function(item)
-      local allowed = {["TRUE"] = true, ["YES"] = true, ["ON"] = true}
+    string = function(item)
+      local allowed = {TRUE = true, YES = true, ON = true}
       local text = string.upper(M.trim(item))
 
       if (allowed[text]) then
@@ -209,7 +209,7 @@ function M.boolean(item)
         return false
       end
     end,
-    ["boolean"] = function(item)
+    boolean = function(item)
       return item
     end
   }
