@@ -191,7 +191,7 @@ function M.trim(text)
   return text:match("^()%s*$") and "" or text:match("^%s*(.*%S)")
 end
 
-function M.to_bool(item)
+function M.boolean(item)
   local type = type(item)
   local switch = {
     ["nil"] = function(item)
