@@ -177,4 +177,14 @@ function M.has_modules(...)
   return pcall(handler)
 end
 
+function M.link_log(stdout, stderr)
+  if (stdout) then
+    M.run("ln -sf /dev/stdout %s", stdout)
+  end
+
+  if (stderr) then
+    M.run("ln -sf /dev/stderr %s", stderr)
+  end
+end
+
 return M
