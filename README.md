@@ -35,7 +35,7 @@ Alpine Base Image
 
 ### /usr/local/bin/docker-build.lua
 - `docker build` script
-- add the statement `RUN lua /usr/local/bin/build/docker-build.lua` to `Dockerfile`
+- add the statement `RUN /usr/local/bin/build/docker-build.lua` to `Dockerfile`
 - each `Dockerfile` use `COPY` or `ADD` statement to overwrite the script
 
 ## Paths
