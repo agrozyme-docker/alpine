@@ -17,8 +17,8 @@ Alpine Base Image
 - simply map the host OS user by setting environment variables `DOCKER_CORE_UID` / `DOCKER_CORE_GID`
 - default UID: 500
 - default GID: 500
-- use the `docker-core` module in the `CMD` script and call `update_user()` to change UID / GID of `core` using the environment variable `DOCKER_CORE_UID` / `DOCKER_CORE_GID`
-- if the service can not be run as a custom user, we can use `su-exec core` to execute the service
+- use the `docker-core` module in the `docker-run.lua` script and call `update_user()` to change UID / GID of `core` using the environment variable `DOCKER_CORE_UID` / `DOCKER_CORE_GID`
+- if the service can not be run as a custom user, it can use `su-exec core` to execute the service
 
 # Lua
 - replace shell scripts with lua scripts
@@ -43,7 +43,7 @@ Alpine Base Image
 
 ## Paths
 ### /usr/local/bin
-- put `CMD` script here
+- put command scripts here
 - use `docker run -it --rm {image} {command}` to execute the script
 
 ### /usr/local/bin/module
