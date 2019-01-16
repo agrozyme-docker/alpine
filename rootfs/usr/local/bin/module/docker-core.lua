@@ -146,7 +146,18 @@ function M.append_file(name, ...)
   return file:close()
 end
 
-function M.replace_files(...)
+function M.requires(requires)
+  local items = {}
+
+  for index, item in pairs(requires) do
+    items[index] = require(item)
+  end
+
+  return items
+end
+
+function M.replace_files(requires, updates)
+  local state, items = pcall(M.requires, requires)
   local handler = function(target)
     local index = target:find("/[^/]*$")
 
@@ -160,8 +171,12 @@ function M.replace_files(...)
     M.execute("mv -f %s %s", source, target)
   end
 
-  for _, target in pairs({...}) do
-    handler(target)
+  for target, update in updates do
+    if (state) then
+      update(target, items)
+    else
+      handler(target)
+    end
   end
 end
 
