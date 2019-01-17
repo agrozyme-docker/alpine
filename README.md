@@ -63,9 +63,9 @@ CMD ["/usr/local/bin/docker-run.lua"]
 ### docker-build.lua
 ```lua
 #!/usr/bin/lua
+local core = require("docker-core")
 
 local function main()
-  local core = require("docker-core")
   core.run("apk add --no-cache su-exec tini curl")
   core.run("mv /etc/profile.d/color_prompt /etc/profile.d/color_prompt.sh")
 end
@@ -76,9 +76,9 @@ main()
 ### docker-run.lua
 ```lua
 #!/usr/bin/lua
+local core = require("docker-core")
 
 local function main()
-  local core = require("docker-core")
   core.update_user()
   core.run("/bin/sh")
 end
