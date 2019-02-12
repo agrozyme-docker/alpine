@@ -1,4 +1,4 @@
-FROM alpine:3.8
+FROM alpine:3.9
 COPY rootfs /
 ENV ENV="/etc/profile" LUA_PATH=";;/usr/local/bin/module/?.lua"
 
