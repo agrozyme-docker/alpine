@@ -1,4 +1,4 @@
-FROM alpine:edge
+FROM docker.io/library/alpine:edge
 COPY rootfs /
 ENV ENV="/etc/profile" LUA_PATH=";;/usr/local/bin/module/?.lua"
 
