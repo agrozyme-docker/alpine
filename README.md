@@ -101,3 +101,7 @@ end
 
 main()
 ```
+
+### Shell Script
+
+See `example` folder to get the `docker swarm` examples
