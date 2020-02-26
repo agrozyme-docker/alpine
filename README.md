@@ -14,6 +14,7 @@ Alpine Base Image
 
 - DOCKER_CORE_UID
 - DOCKER_CORE_GID
+- DOCKER_STACK
 
 # Core User
 
@@ -104,4 +105,11 @@ main()
 
 ### Shell Script
 
-See `example` folder to get the `docker swarm` examples
+- See `docker swarm` example in `example` folder
+- Pass the environment variable `DOCKER_STACK` to the container at runtime
+- command
+  - profile: re-run `profile.sh`
+  - docker_setup_swarm: init docker swarm and network
+  - docker_clean_swarm: prune all things and leave swarm
+  - docker_deploy_all: delpoy all stacks
+  - docker_remove_all: remove all stacks and containers
