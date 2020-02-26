@@ -11,23 +11,55 @@ function copy_scripts() {
   sudo chmod +x "${bin}"/*.sh
 }
 
-function setup_swarm() {
-  local network="${DOCKER_NETWORK:-network}"
-  local ip=${COREOS_PUBLIC_IPV4:-}
-  local swarm=$(docker info | grep -Po '(?<=^Swarm: ).*$')
+function get_network() {
+  echo "${DOCKER_NETWORK:-network}"
+}
 
-  if [[ "inactive" == "${swarm}" ]]; then
-    if [[ "" == "${ip}" ]]; then
-      docker swarm init
-    else
-      docker swarm init --advertise-addr ${ip}
-    fi
+function check_network() {
+  local network=$(get_network)
+  local name=$(docker network ls -f name="${network}" --format '{{.Name}}')
+
+  if [[ "${network}" == "${name}" ]]; then
+    echo "${network}"
+  else
+    echo ""
+  fi
+}
+
+function run_command() {
+  local network=$(check_network)
+  local user=$(id -u)
+  local group=$(id -g)
+  local attach=""
+
+  if [[ "" != "${network}" ]]; then
+    attach="--network=${network}"
   fi
 
-  local name=$(docker network ls -f name="${network}" --format '{{.Name}}')
+  local run="docker run -it --rm -u=${user}:${group} ${attach} $@"
+  ${run}
+}
+
+function setup_swarm() {
+  local ip="${COREOS_PUBLIC_IPV4:-}"
+  local active=$(docker info | grep -Po '(?<=^Swarm: ).*$')
+  local address=""
+
+  if [[ "" != "${ip}" ]]; then
+    address="--advertise-addr ${ip}"
+  fi
+
+  local init="docker swarm init ${address}"
+
+  if [[ "inactive" == "${active}" ]]; then
+    ${init}
+  fi
+
+  local network=$(get_network)
+  local exist=$(check_network)
   local create_network="docker network create --driver overlay --attachable ${network}"
 
-  if [[ "${network}" != "${name}" ]]; then
+  if [[ "" == "${exist}" ]]; then
     ${create_network}
   fi
 
@@ -40,14 +72,38 @@ function setup_swarm() {
   fi
 }
 
-function remove_all() {
-  local items=($(docker stack ls --format "{{.Name}}"))
+function clean_swarm() {
+  remove_all
+  docker system prune -af
+  sleep 1
+  docker swarm leave -f
+  sleep 1
+  docker network prune -f
+  sleep 1
+}
 
-  if [[ 0 -eq ${#items[@]} ]]; then
+function remove_all() {
+  docker container prune -f
+  sleep 1
+
+  local stacks=($(docker stack ls --format "{{.Name}}"))
+
+  if [[ 0 -eq ${#stacks[@]} ]]; then
     return
   fi
 
-  docker stack rm "${items[@]}"
+  docker stack rm "${stacks[@]}"
+  sleep 1
+
+  local items=($(docker ps -aq))
+
+  if [[ 0 -ne ${#items[@]} ]]; then
+    docker container stop "${items[@]}"
+    sleep 1
+  fi
+
+  docker container prune -f
+  sleep 1
 }
 
 function enable_swap() {
