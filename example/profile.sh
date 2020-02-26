@@ -3,19 +3,15 @@
 function main() {
   local source="$(readlink -f ${BASH_SOURCE[0]})"
   local path="$(dirname ${source})"
-  local bin="${path}/.bin"
-  local shell
-  declare -A shell=(
-    ['docker']="${bin}/docker.do.sh"
-  )
+  local docker_do="${path}/docker.do.sh"
 
-  sudo chmod +x "${bin}/*"
+  sudo chmod +x "${path}"/*.sh
   alias profile="source ${source}"
 
-  alias docker_setup_swarm="${shell['docker']} setup_swarm"
-  alias docker_clean_swarm="${shell['docker']} clean_swarm"
-  alias docker_deploy_all="${shell['docker']} deploy_all ${path}"
-  alias docker_remove_all="${shell['docker']} remove_all"
+  alias docker_setup_swarm="${docker_do} setup_swarm"
+  alias docker_clean_swarm="${docker_do} clean_swarm"
+  alias docker_deploy_all="${docker_do} deploy_all"
+  alias docker_remove_all="${docker_do} remove_all"
 }
 
 main "$@"
