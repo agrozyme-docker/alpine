@@ -4,12 +4,19 @@ set +e -uo pipefail
 function main() {
   local source="$(readlink -f ${BASH_SOURCE[0]})"
   local path="$(dirname ${source})"
-  local shell="${path}/.bin/docker.do.sh"
+  local profile="${path}/profile.sh"
+  local run="${path}/docker.do.sh"
   sudo chmod +x "${path}"/*.sh
-  source "${path}/profile.sh"
-  ${shell} update_unit docker-stack.service "$(realpath ${source})"
-  docker_setup_swarm
-  docker_deploy_all
+
+  if [[ -r "${profile}" ]]; then
+    source "${profile}"
+  fi
+
+  if [[ -r "${run}" ]]; then
+    ${run} update_unit
+    ${run} setup_swarm
+    ${run} deploy_all
+  fi
 }
 
 main "$@"
