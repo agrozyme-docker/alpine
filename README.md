@@ -4,8 +4,6 @@ Alpine Base Image
 
 # Extra repository
 
-- edge
-- edgecommunity
 - testing
 
 usage: `apk add --no-cache traefik@testing`
