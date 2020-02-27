@@ -2,6 +2,14 @@
 
 Alpine Base Image
 
+# Extra repository
+
+- edge
+- edgecommunity
+- testing
+
+usage: `apk add --no-cache traefik@testing`
+
 # Packages
 
 - su-exec
@@ -36,37 +44,37 @@ Alpine Base Image
   - use the lua standard libraries to avoid platform differences
 - use `luarocks install` to install lua package
 
-## Scripts
+# Docker build & run scripts
 
-### /usr/local/bin/module/docker-core.lua
+## /usr/local/bin/module/docker-core.lua
 
 - some functions to help build docker images and start commands
 
-### /usr/local/bin/docker-build.lua
+## /usr/local/bin/docker-build.lua
 
 - `docker build` script
 - add the statement `RUN set +e -uxo pipefail && chmod +x /usr/local/bin/* && /usr/local/bin/docker-build.lua` to `Dockerfile`
 
-### /usr/local/bin/docker-run.lua
+## /usr/local/bin/docker-run.lua
 
 - `docker run` script
 - add the statement `CMD ["/usr/local/bin/docker-run.lua"]` to `Dockerfile`
 
-## Paths
+# Paths
 
-### /usr/local/bin
+## /usr/local/bin
 
 - put command scripts here
 - use `docker run -it --rm {image} {command}` to execute the script
 
-### /usr/local/bin/module
+## /usr/local/bin/module
 
 - put custom module scripts here
 - add the statement `local module = require("{module}")` to other scripts
 
-## Examples
+# Examples
 
-### Dockerfile
+## Dockerfile
 
 ```dockerfile
 FROM alpine
@@ -75,7 +83,7 @@ RUN set +e -uxo pipefail && chmod +x /usr/local/bin/* && /usr/local/bin/docker-b
 CMD ["/usr/local/bin/docker-run.lua"]
 ```
 
-### docker-build.lua
+## docker-build.lua
 
 ```lua
 #!/usr/bin/lua
@@ -89,7 +97,7 @@ end
 main()
 ```
 
-### docker-run.lua
+## docker-run.lua
 
 ```lua
 #!/usr/bin/lua
@@ -103,7 +111,7 @@ end
 main()
 ```
 
-### Shell Script
+## Shell scripts
 
 - See `docker swarm` example in `example` folder
 - Pass the environment variable `DOCKER_STACK` to the container at runtime
