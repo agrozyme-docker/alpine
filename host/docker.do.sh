@@ -1,22 +1,23 @@
 #!/bin/bash
 set -euo pipefail
 
-function copy_scripts() {
-  local path="${1:-}"
-
-  if [[ ! -d "${path}" ]]; then
-    return
-  fi
-
-  local bin="/opt/bin"
-  sudo mkdir -p "${bin}"
-  sudo cp "${path}"/*.sh "${bin}"
-  sudo chown root:root "${bin}"/*.sh
-  sudo chmod +x "${bin}"/*.sh
+function source_file() {
+  echo "$(readlink -f ${BASH_SOURCE[0]})"
 }
 
 function source_path() {
-  echo "$(dirname $(readlink -f ${BASH_SOURCE[0]}))"
+  echo "$(dirname $(source_file))"
+}
+
+function setup_alias() {
+  local run="$(source_file)"
+
+  alias docker_setup_swarm="${run} setup_swarm"
+  alias docker_clean_swarm="${run} clean_swarm"
+  alias docker_deploy_all="${run} deploy_all"
+  alias docker_remove_all="${run} remove_all"
+  alias docker_setup_unit="${run} setup_unit"
+  alias docker_clean_unit="${run} clean_unit"
 }
 
 function get_network() {
@@ -47,19 +48,6 @@ function run_command() {
   ${run}
 }
 
-function enable_swap() {
-  local swap="$(source_path)/swap"
-
-  if [[ -f "${swap}" ]]; then
-    return
-  fi
-
-  sudo fallocate -l 1G "${swap}"
-  sudo chmod 600 "${swap}"
-  sudo mkswap "${swap}"
-  sudo swapon "${swap}"
-}
-
 function unit_content() {
   local script="${1:-}"
 
@@ -74,8 +62,10 @@ function unit_content() {
 Description=Docker Stack
 After=docker.service
 Requires=docker.service
+ConditionPathExists=${script}
 
 [Service]
+Type=oneshot
 ExecStart=bash ${script}
 
 [Install]
@@ -84,10 +74,18 @@ WantedBy=multi-user.target
 HEREDOC
 }
 
-function update_unit() {
-  local path="/etc/systemd/system"
-  local unit="docker-stack.service"
-  local file="${path}/${unit}"
+function unit_path() {
+  echo "/etc/systemd/system"
+}
+
+function unit_name() {
+  echo "docker-stack.service"
+}
+
+function setup_unit() {
+  local path="$(unit_path)"
+  local name="$(unit_name)"
+  local file="${path}/${name}"
   local script="$(source_path)/setup.sh"
   local content="$(unit_content ${script})"
 
@@ -99,7 +97,17 @@ function update_unit() {
   sudo touch "${file}"
   echo -e "${content}" | sudo tee "${file}" > /dev/null
   sudo systemctl daemon-reload
-  sudo systemctl enable "${unit}"
+  sudo systemctl enable "${name}"
+}
+
+function clean_unit() {
+  local name="$(unit_name)"
+  local file="$(unit_path)/${name}"
+  set +e
+  sudo systemctl disable "${name}" --now
+  sudo rm -f "${file}"
+  sudo systemctl daemon-reload
+  set -e
 }
 
 function remove_all() {

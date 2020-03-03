@@ -2,7 +2,7 @@
 
 Alpine Base Image
 
-# Extra repository
+# Extra Repository
 
 - testing
 
@@ -24,55 +24,27 @@ usage: `apk add --no-cache traefik@testing`
 
 # Core User
 
-- run the container with the `root` user
-- run the service in the container with the `core` user
-- simply map the host OS user by setting environment variables `DOCKER_CORE_UID` / `DOCKER_CORE_GID`
-- default UID: 500
-- default GID: 500
-- use the `docker-core` module in the `docker-run.lua` script and call `update_user()` to change UID / GID of `core` using the environment variable `DOCKER_CORE_UID` / `DOCKER_CORE_GID`
-- if the service can not be run as a custom user, it can use `su-exec core` to execute the service
+- Run the container with the `root` user
+- Run the service in the container with the `core` user
+- Simply map the host OS user by setting environment variables `DOCKER_CORE_UID` / `DOCKER_CORE_GID`
+  - default UID: `500`
+  - default GID: `500`
+- Use the `docker-core` module in the `docker-run.lua` script and call `update_user()` to change UID / GID of `core` using the environment variable `DOCKER_CORE_UID` / `DOCKER_CORE_GID`
+- If the service can not be run as a custom user, it can use `su-exec core` to execute the service
 
 # Lua
 
-- replace shell scripts with lua scripts
-  - lua (0.86MB) is small than bash (3.82MB)
+- Replace shell scripts with lua scripts
+  - lua (< 1MB) is small than bash (< 4MB)
   - lua has good data types and easy of use
   - lua has better errors and process handling
   - lua has a package manager (luarocks)
-  - use the lua standard libraries to avoid platform differences
-- use `luarocks install` to install lua package
+  - Use the lua standard libraries to avoid platform differences
+- Use `luarocks install` to install lua package
 
-# Docker build & run scripts
+# Docker Build
 
-## /usr/local/bin/module/docker-core.lua
-
-- some functions to help build docker images and start commands
-
-## /usr/local/bin/docker-build.lua
-
-- `docker build` script
-- add the statement `RUN set +e -uxo pipefail && chmod +x /usr/local/bin/* && /usr/local/bin/docker-build.lua` to `Dockerfile`
-
-## /usr/local/bin/docker-run.lua
-
-- `docker run` script
-- add the statement `CMD ["/usr/local/bin/docker-run.lua"]` to `Dockerfile`
-
-# Paths
-
-## /usr/local/bin
-
-- put command scripts here
-- use `docker run -it --rm {image} {command}` to execute the script
-
-## /usr/local/bin/module
-
-- put custom module scripts here
-- add the statement `local module = require("{module}")` to other scripts
-
-# Examples
-
-## Dockerfile
+`Dockerfile` example
 
 ```dockerfile
 FROM alpine
@@ -81,7 +53,12 @@ RUN set +e -uxo pipefail && chmod +x /usr/local/bin/* && /usr/local/bin/docker-b
 CMD ["/usr/local/bin/docker-run.lua"]
 ```
 
-## docker-build.lua
+## /usr/local/bin/docker-build.lua
+
+- The `docker build` script
+- Add the statement `RUN set +e -uxo pipefail && chmod +x /usr/local/bin/* && /usr/local/bin/docker-build.lua` to `Dockerfile`
+
+Example
 
 ```lua
 #!/usr/bin/lua
@@ -95,7 +72,14 @@ end
 main()
 ```
 
-## docker-run.lua
+# Docker Run
+
+## /usr/local/bin/docker-run.lua
+
+- The `docker run` script
+- Add the statement `CMD ["/usr/local/bin/docker-run.lua"]` to `Dockerfile`
+
+Example
 
 ```lua
 #!/usr/bin/lua
@@ -109,13 +93,95 @@ end
 main()
 ```
 
-## Shell scripts
+## /usr/local/bin
 
-- See `docker swarm` example in `example` folder
-- Pass the environment variable `DOCKER_STACK` to the container at runtime
-- command
-  - profile: re-run `profile.sh`
-  - docker_setup_swarm: init docker swarm and network
-  - docker_clean_swarm: prune all things and leave swarm
-  - docker_deploy_all: delpoy all stacks
-  - docker_remove_all: remove all stacks and containers
+- Put the command binary / script here
+- Use `docker run -it --rm {image} {command}` to execute the command
+
+## /usr/local/bin/module
+
+- Put custom module scripts here
+- Add the statement `local module = require("{module}")` to other scripts
+
+## /usr/local/bin/module/docker-core.lua
+
+- Some functions to help build docker images and start commands
+
+# Host scripts
+
+- Run at host OS or VM
+- See `docker swarm` example in `host` folder
+
+## Files Layout
+
+```
+/home/core/docker
+|-- setup.sh
+|-- profile.sh
+|-- docker.do.sh
+|-- other *.do.sh
+|-- <subdirectory>
+    |-- docker-compose.yml
+    |-- setup.sh
+```
+
+## Prepare
+
+- If the `core` user does not exist in the host OS, create one
+- It is recommended to set the uid / gid of the `core` user to `500`
+- The example files in the `host` folder need to be placed in the `/home/core/docker` directory
+- The value of environment variable `DOCKER_STACK` is the subdirectory name and is passed to the container at runtime
+
+## Deploy
+
+- The `setup.sh` in the `/home/core/docker` is the main deployment script
+- The `setup.sh` in the subdirectory will be executed before deploying the docker stack
+- Change directory to `/home/core/docker` and run `/home/core/docker/setup.sh` to deploy the docker stacks
+
+## \*.do.sh
+
+- `docker.do.sh`: Implement functions for deploying docker stacks commands
+- others: Implement the `setup_alias` function to set aliases for CLI commands
+- Implement the `main` function to pass the first argument as the function name
+
+Example
+
+```bash
+function source_file() {
+  echo "$(readlink -f ${BASH_SOURCE[0]})"
+}
+
+function setup_alias() {
+  local run="$(source_file)"
+
+  alias docker_setup_swarm="${run} setup_swarm"
+  alias docker_clean_swarm="${run} clean_swarm"
+  alias docker_deploy_all="${run} deploy_all"
+  alias docker_remove_all="${run} remove_all"
+  alias docker_setup_unit="${run} setup_unit"
+  alias docker_clean_unit="${run} clean_unit"
+}
+
+function main() {
+  local call="${1:-}"
+
+  if [[ -z $(typeset -F "${call}") ]]; then
+    return
+  fi
+
+  shift
+  ${call} "$@"
+}
+
+main "$@"
+```
+
+## Commands
+
+- profile: Rerun `profile.sh`
+- docker_setup_swarm: Setup the docker swarm and network
+- docker_clean_swarm: Clean everything up and leave the docker swarm
+- docker_deploy_all: Delpoy all docker stacks
+- docker_remove_all: Remove all docker stacks and containers
+- docker_setup_unit: Setup the `docker-stack.service` service to run `/home/core/docker/setup.sh` at boot
+- docker_clean_unit: Clean up the `docker-stack.service` service
