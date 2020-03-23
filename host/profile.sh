@@ -1,4 +1,5 @@
 #!/bin/bash
+set +e -uo pipefail
 
 function main() {
   local source="$(readlink -f ${BASH_SOURCE[0]})"

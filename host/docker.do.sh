@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set +e -uo pipefail
 
 function source_file() {
   echo "$(readlink -f ${BASH_SOURCE[0]})"
