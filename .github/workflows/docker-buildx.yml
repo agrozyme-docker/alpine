@@ -5,7 +5,7 @@ env:
   DOCKER_HUB_NAMESPACE: ${{ secrets.DOCKER_HUB_NAMESPACE }}
   # DOCKER_DEFAULT_PLATFORM: 'linux/386,linux/amd64,linux/arm/v7,linux/arm64'
   DOCKER_HUB_REGISTRY: 'docker.io'
-  DOCKER_HUB_IMAGE: '${DOCKER_HUB_REGISTRY}/${DOCKER_HUB_NAMESPACE}/${GITHUB_REPOSITORY/*\//}:${GITHUB_REF//*\//}'
+  # DOCKER_HUB_IMAGE: '${DOCKER_HUB_REGISTRY}/${DOCKER_HUB_NAMESPACE}/${GITHUB_REPOSITORY/*\//}:${GITHUB_REF//*\//}'
   # DOCKER_HUB_IMAGE: '${DOCKER_HUB_REGISTRY}/${DOCKER_HUB_NAMESPACE}/alpine:master'
 jobs:
   build:
@@ -16,6 +16,7 @@ jobs:
       - uses: crazy-max/ghaction-docker-buildx@v1
       - run: |
           export DOCKER_DEFAULT_PLATFORM="linux/386,linux/amd64,linux/arm/v7,linux/arm64"
+          export DOCKER_HUB_IMAGE="${DOCKER_HUB_REGISTRY}/${DOCKER_HUB_NAMESPACE}/${GITHUB_REPOSITORY/*\//}:${GITHUB_REF//*\//}"
           # printenv | grep "^DOCKER_*" | sort
           printenv | sort
           docker version
