@@ -18,9 +18,9 @@ jobs:
           export DOCKER_DEFAULT_PLATFORM="linux/386,linux/amd64,linux/arm/v7,linux/arm64"
           export DOCKER_HUB_IMAGE="${DOCKER_HUB_REGISTRY}/${DOCKER_HUB_NAMESPACE}/${GITHUB_REPOSITORY/*\//}:${GITHUB_REF//*\//}"
           # printenv | grep "^DOCKER_*" | sort
-          printenv | sort
+          # printenv | sort
           docker version
-          # update-binfmts --enable
+          update-binfmts --enable
           # docker buildx create --name=docker-buildx-qemu --driver=docker-container --use
           # docker buildx inspect --bootstrap
           echo "${DOCKER_HUB_TOKEN}" | docker login --username="${DOCKER_HUB_USER}" --password-stdin "${DOCKER_HUB_REGISTRY}"
