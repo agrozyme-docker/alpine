@@ -10,7 +10,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: crazy-max/ghaction-docker-buildx@v1
-      - run: |
+      - name: script
+        run: |
           export DOCKER_DEFAULT_PLATFORM="linux/386,linux/amd64,linux/arm/v7,linux/arm64"
           export DOCKER_HUB_IMAGE="${DOCKER_HUB_REGISTRY}/${DOCKER_HUB_NAMESPACE}/${GITHUB_REPOSITORY//*\//}:${GITHUB_REF//*\//}"
           printenv | grep "^DOCKER_*" | sort
