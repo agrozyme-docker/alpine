@@ -5,24 +5,21 @@ env:
   DOCKER_HUB_NAMESPACE: ${{ secrets.DOCKER_HUB_NAMESPACE }}
   DOCKER_DEFAULT_PLATFORM: 'linux/386,linux/amd64,linux/arm/v7,linux/arm64'
   DOCKER_HUB_REGISTRY: 'docker.io'
-  # DOCKER_HUB_IMAGE: '${DOCKER_HUB_REGISTRY}/${DOCKER_HUB_NAMESPACE}/${GITHUB_REPOSITORY/*\//}:${GITHUB_REF//*\//}'
-  DOCKER_HUB_IMAGE: '${DOCKER_HUB_REGISTRY}/${DOCKER_HUB_NAMESPACE}/alpine:master'
+  DOCKER_HUB_IMAGE: '${DOCKER_HUB_REGISTRY}/${DOCKER_HUB_NAMESPACE}/${GITHUB_REPOSITORY/*\//}:${GITHUB_REF//*\//}'
+  # DOCKER_HUB_IMAGE: '${DOCKER_HUB_REGISTRY}/${DOCKER_HUB_NAMESPACE}/alpine:master'
 jobs:
   build:
-    container:
-      image: docker.io/jonoh/docker-buildx-qemu
+    # container:
+    #   image: docker.io/jonoh/docker-buildx-qemu
     runs-on: ubuntu-latest
     steps:
-      - uses: docker://docker.io/jonoh/docker-buildx-qemu
+      - uses: crazy-max/ghaction-docker-buildx@v1
       - run: |
-          export DOCKER_DEFAULT_PLATFORM="linux/386,linux/amd64,linux/arm/v7,linux/arm64"
-          export DOCKER_HUB_REGISTRY="docker.io"
-          export DOCKER_HUB_IMAGE="${DOCKER_HUB_REGISTRY}/${DOCKER_HUB_NAMESPACE}/${BITBUCKET_REPO_SLUG}:${BITBUCKET_BRANCH}"
           # printenv | grep "^DOCKER_*" | sort
           printenv | sort
           docker version
-          update-binfmts --enable
-          docker buildx create --name=docker-buildx-qemu --driver=docker-container --use
-          docker buildx inspect --bootstrap
+          # update-binfmts --enable
+          # docker buildx create --name=docker-buildx-qemu --driver=docker-container --use
+          # docker buildx inspect --bootstrap
           echo "${DOCKER_HUB_TOKEN}" | docker login --username="${DOCKER_HUB_USER}" --password-stdin "${DOCKER_HUB_REGISTRY}"
-          # docker buildx build --no-cache --pull --push --platform="${DOCKER_DEFAULT_PLATFORM}" --tag="${DOCKER_HUB_IMAGE}" .
+          docker buildx build --no-cache --pull --push --platform="${DOCKER_DEFAULT_PLATFORM}" --tag="${DOCKER_HUB_IMAGE}" .
