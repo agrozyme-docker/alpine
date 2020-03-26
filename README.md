@@ -179,3 +179,44 @@ main "$@"
 - docker_remove_all: Remove all docker stacks and containers
 - docker_setup_unit: Setup the `docker-stack.service` service to run `/home/core/docker/setup.sh` at boot
 - docker_clean_unit: Clean up the `docker-stack.service` service
+
+# Gitlab CI
+
+Use [docker-buildx-qemu](https://hub.docker.com/r/jonoh/docker-buildx-qemu) to build a multi-platform docker image and push it to [Docker Hub](https://hub.docker.com/)
+
+## Support Platforms:
+
+- linux/386
+- linux/amd64
+- linux/arm/v7
+- linux/arm64
+
+## Branch:
+
+Each branch is mapped to a docker image tag and the repository name is the same as Docker Hub
+
+- master: For testing
+- latest: Map to docker image tag `latest`
+
+## Environment variables
+
+Put all docker image repositories into a `Group` and set `Variables` in `CI / CD Settings`
+
+See: [Group-level environment variables](https://gitlab.com/help/ci/variables/README#group-level-environment-variables)
+
+- DOCKER_HUB_USER: Login username
+- DOCKER_HUB_TOKEN: Login password or [Access Token](https://docs.docker.com/docker-hub/access-tokens/), must be `Masked` (Recommend using `Access Token`)
+- DOCKER_HUB_NAMESPACE: username or organization
+
+## `.gitlab-ci.yml`
+
+Put `.gitlab-ci.yml` into the root directory of the repository
+
+Example
+
+```yml
+include:
+  - project: 'agrozyme-docker/alpine'
+    ref: master
+    file: '/.gitlab-ci.yml'
+```

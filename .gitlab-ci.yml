@@ -1,0 +1,22 @@
+variables:
+  DOCKER_HOST: tcp://docker:2375/
+
+build:
+  image: docker.io/jonoh/docker-buildx-qemu
+  stage: build
+  services:
+    - docker:dind
+  variables:
+    DOCKER_DEFAULT_PLATFORM: 'linux/386,linux/amd64,linux/arm/v7,linux/arm64'
+    DOCKER_HUB_REGISTRY: 'docker.io'
+    DOCKER_HUB_IMAGE: '${DOCKER_HUB_REGISTRY}/${DOCKER_HUB_NAMESPACE}/${CI_PROJECT_NAME}:${CI_BUILD_REF_NAME}'
+  before_script:
+    - printenv | grep "^DOCKER_*" | sort
+    - printenv | grep "^CI_*" | sort
+    - docker version
+    - update-binfmts --enable
+    - docker buildx create --name=docker-buildx-qemu --driver=docker-container --use
+    - docker buildx inspect --bootstrap
+  script:
+    - echo "${DOCKER_HUB_TOKEN}" | docker login --username="${DOCKER_HUB_USER}" --password-stdin "${DOCKER_HUB_REGISTRY}"
+    - docker buildx build --no-cache --pull --push --platform="${DOCKER_DEFAULT_PLATFORM}" --tag="${DOCKER_HUB_IMAGE}" .
