@@ -7,6 +7,7 @@ jobs:
   build:
     # container:
     #   image: docker.io/jonoh/docker-buildx-qemu
+    runs-on: ubuntu-latest
     steps:
       - uses: docker://docker.io/jonoh/docker-buildx-qemu
       - run: |
