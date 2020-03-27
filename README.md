@@ -180,18 +180,18 @@ main "$@"
 - docker_setup_unit: Setup the `docker-stack.service` service to run `/home/core/docker/setup.sh` at boot
 - docker_clean_unit: Clean up the `docker-stack.service` service
 
-# Gitlab CI
+# Buildx CI Setting
 
-Use [docker-buildx-qemu](https://hub.docker.com/r/jonoh/docker-buildx-qemu) to build a multi-platform docker image and push it to [Docker Hub](https://hub.docker.com/)
+Build a multi-platform docker image and push it to [Docker Hub](https://hub.docker.com/)
 
-## Support Platforms:
+## Support Platforms
 
 - linux/386
 - linux/amd64
 - linux/arm/v7
 - linux/arm64
 
-## Branch:
+## Branch
 
 Each branch is mapped to a docker image tag and the repository name is the same as Docker Hub
 
@@ -200,13 +200,23 @@ Each branch is mapped to a docker image tag and the repository name is the same 
 
 ## Environment variables
 
-Put all docker image repositories into a `Group` and set `Variables` in `CI / CD Settings`
-
-See: [Group-level environment variables](https://gitlab.com/help/ci/variables/README#group-level-environment-variables)
-
 - DOCKER_HUB_USER: Login username
 - DOCKER_HUB_TOKEN: Login password or [Access Token](https://docs.docker.com/docker-hub/access-tokens/), must be `Masked` (Recommend using `Access Token`)
 - DOCKER_HUB_NAMESPACE: username or organization
+
+## Registry CI
+
+- Support
+  - Gitlab CI (Recommend)
+  - GitHub Actions
+- Not Support
+  - BitBucket Pipelines (Docker can't run privileged)
+
+# Gitlab CI
+
+Use [docker-buildx-qemu](https://hub.docker.com/r/jonoh/docker-buildx-qemu) to build
+
+Put all docker image repositories into a `Group` and set [Variables](https://gitlab.com/help/ci/variables/README#group-level-environment-variables) in `CI / CD Settings`
 
 ## `.gitlab-ci.yml`
 
@@ -219,4 +229,73 @@ include:
   - project: 'agrozyme-docker/alpine'
     ref: master
     file: '/.gitlab-ci.yml'
+```
+
+# GitHub Actions
+
+Use [Docker Buildx](https://github.com/marketplace/actions/docker-buildx) Action to build
+
+Add environment variables to [Secret](https://help.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets) for each repository
+
+## `.github/worlflows/docker-buildx.yml`
+
+Put `docker-buildx.yml` into `.github/worlflows` directory of the repository
+
+Example
+
+```yml
+on: push
+env:
+  DOCKER_HUB_USER: ${{ secrets.DOCKER_HUB_USER }}
+  DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
+  DOCKER_HUB_NAMESPACE: ${{ secrets.DOCKER_HUB_NAMESPACE }}
+  DOCKER_HUB_REGISTRY: 'docker.io'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: crazy-max/ghaction-docker-buildx@v1
+      - name: script
+        run: |
+          export DOCKER_DEFAULT_PLATFORM="linux/386,linux/amd64,linux/arm/v7,linux/arm64"
+          export DOCKER_HUB_IMAGE="${DOCKER_HUB_REGISTRY}/${DOCKER_HUB_NAMESPACE}/${GITHUB_REPOSITORY//*\//}:${GITHUB_REF//*\//}"
+          printenv | grep "^DOCKER_*" | sort
+          printenv | grep "^GITHUB_*" | sort
+          docker version
+          echo "${DOCKER_HUB_TOKEN}" | docker login --username="${DOCKER_HUB_USER}" --password-stdin "${DOCKER_HUB_REGISTRY}"
+          docker buildx build --no-cache --pull --push --platform="${DOCKER_DEFAULT_PLATFORM}" --tag="${DOCKER_HUB_IMAGE}" .
+```
+
+# BitBucket Pipelines
+
+**NOT WORK**
+
+Put all docker image repositories into a `Team` and set [Account variables](https://confluence.atlassian.com/bitbucket/variables-in-pipelines-794502608.html) in `PIPELINES`
+
+## `bitbucket-pipelines.yml`
+
+Put `bitbucket-pipelines.yml` into the root directory of the repository
+
+Example
+
+```yml
+image: docker.io/jonoh/docker-buildx-qemu
+
+pipelines:
+  default:
+    - step:
+        script:
+          # - export DOCKER_HOST="tcp://${BITBUCKET_DOCKER_HOST_INTERNAL}:2375"
+          - export DOCKER_DEFAULT_PLATFORM="linux/386,linux/amd64,linux/arm/v7,linux/arm64"
+          - export DOCKER_HUB_REGISTRY="docker.io"
+          - export DOCKER_HUB_IMAGE="${DOCKER_HUB_REGISTRY}/${DOCKER_HUB_NAMESPACE}/${BITBUCKET_REPO_SLUG}:${BITBUCKET_BRANCH}"
+          - printenv | grep "^DOCKER_*" | sort
+          - printenv | grep "^BITBUCKET_*" | sort
+          - docker version
+          - update-binfmts --enable
+          - docker buildx create --name=docker-buildx-qemu --driver=docker-container --use
+          - docker buildx inspect --bootstrap
+          - echo "${DOCKER_HUB_TOKEN}" | docker login --username="${DOCKER_HUB_USER}" --password-stdin "${DOCKER_HUB_REGISTRY}"
+          - docker buildx build --no-cache --pull --push --platform="${DOCKER_DEFAULT_PLATFORM}" --tag="${DOCKER_HUB_IMAGE}" .
 ```
