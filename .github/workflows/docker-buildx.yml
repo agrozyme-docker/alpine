@@ -1,8 +1,9 @@
 on: push
 env:
   DOCKER_HUB_USER: ${{ secrets.DOCKER_HUB_USER }}
-  DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
+  DOCKER_HUB_PASS: ${{ secrets.DOCKER_HUB_PASS }}
   DOCKER_HUB_NAMESPACE: ${{ secrets.DOCKER_HUB_NAMESPACE }}
+  DOCKER_HUB_PLATFORM: 'linux/386,linux/amd64,linux/arm/v7,linux/arm64'
   DOCKER_HUB_REGISTRY: 'docker.io'
 jobs:
   build:
@@ -12,10 +13,10 @@ jobs:
       - uses: crazy-max/ghaction-docker-buildx@v1
       - name: script
         run: |
-          export DOCKER_DEFAULT_PLATFORM="linux/386,linux/amd64,linux/arm/v7,linux/arm64"
           export DOCKER_HUB_IMAGE="${DOCKER_HUB_REGISTRY}/${DOCKER_HUB_NAMESPACE}/${GITHUB_REPOSITORY//*\//}:${GITHUB_REF//*\//}"
-          printenv | grep "^DOCKER_*" | sort
-          printenv | grep "^GITHUB_*" | sort
+          printenv | sort
+          # printenv | grep "^DOCKER_HUB_*" | sort
+          # printenv | grep "^GITHUB_*" | sort
           docker version
-          echo "${DOCKER_HUB_TOKEN}" | docker login --username="${DOCKER_HUB_USER}" --password-stdin "${DOCKER_HUB_REGISTRY}"
-          docker buildx build --no-cache --pull --push --platform="${DOCKER_DEFAULT_PLATFORM}" --tag="${DOCKER_HUB_IMAGE}" .
+          echo "${DOCKER_HUB_PASS}" | base64 --decode | docker login --username="${DOCKER_HUB_USER}" --password-stdin "${DOCKER_HUB_REGISTRY}"
+          # docker buildx build --no-cache --pull --push --platform="${DOCKER_HUB_PLATFORM}" --tag="${DOCKER_HUB_IMAGE}" .

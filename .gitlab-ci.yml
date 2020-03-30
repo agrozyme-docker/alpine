@@ -7,16 +7,24 @@ build:
   services:
     - docker:dind
   variables:
-    DOCKER_DEFAULT_PLATFORM: 'linux/386,linux/amd64,linux/arm/v7,linux/arm64'
+    DOCKER_HUB_PLATFORM: 'linux/386,linux/amd64,linux/arm/v7,linux/arm64'
+    DOCKER_HUB_API_URL: 'https://hub.docker.com/v2'
     DOCKER_HUB_REGISTRY: 'docker.io'
     DOCKER_HUB_IMAGE: '${DOCKER_HUB_REGISTRY}/${DOCKER_HUB_NAMESPACE}/${CI_PROJECT_NAME}:${CI_BUILD_REF_NAME}'
   before_script:
-    - printenv | grep "^DOCKER_*" | sort
+    - apt install -y jq
     - printenv | grep "^CI_*" | sort
+    - printenv | grep "^DOCKER_HUB_*" | sort
     - docker version
     - update-binfmts --enable
     - docker buildx create --name=docker-buildx-qemu --driver=docker-container --use
     - docker buildx inspect --bootstrap
   script:
-    - echo "${DOCKER_HUB_TOKEN}" | docker login --username="${DOCKER_HUB_USER}" --password-stdin "${DOCKER_HUB_REGISTRY}"
-    - docker buildx build --no-cache --pull --push --platform="${DOCKER_DEFAULT_PLATFORM}" --tag="${DOCKER_HUB_IMAGE}" .
+    - echo "${DOCKER_HUB_PASS}" | base64 --decode | docker login --username="${DOCKER_HUB_USER}" --password-stdin "${DOCKER_HUB_REGISTRY}"
+    - docker buildx build --no-cache --pull --push --platform="${DOCKER_HUB_PLATFORM}" --tag="${DOCKER_HUB_IMAGE}" .
+    - export DOCKER_HUB_SHORT_DESCRIPTION=$(curl -s -X GET ${CI_API_V4_URL}/projects/${CI_PROJECT_ID} | jq -r '.description')
+    - export DOCKER_HUB_FULL_DESCRIPTION=$(cat README.md)
+    - export DOCKER_HUB_DESCRIPTION_DATA=$(jq -n -r -c --arg short "${DOCKER_HUB_SHORT_DESCRIPTION}" --arg full "${DOCKER_HUB_FULL_DESCRIPTION}" '{"description":$short, "full_description":$full}')
+    - export DOCKER_HUB_LOGIN_DATA=$(jq -n -r -c --arg username "${DOCKER_HUB_USER}" --arg password "$(echo ${DOCKER_HUB_PASS} | base64 --decode)" '{"username":$username,"password":$password}')
+    - export DOCKER_HUB_JWT=$(curl -s -H "Content-Type:application/json" -d "${DOCKER_HUB_LOGIN_DATA}" -X POST "${DOCKER_HUB_API_URL}/users/login/" | jq -r '.token')
+    - curl -s -H "Content-Type:application/json" -H "Authorization:JWT ${DOCKER_HUB_JWT}" -d "${DOCKER_HUB_DESCRIPTION_DATA}" -X PATCH "${DOCKER_HUB_API_URL}/repositories/${DOCKER_HUB_NAMESPACE}/${CI_PROJECT_NAME}/" | jq '.'
