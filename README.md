@@ -201,7 +201,7 @@ Each branch is mapped to a docker image tag and the repository name is the same 
 ## Environment variables
 
 - DOCKER_HUB_USER: Login username
-- DOCKER_HUB_TOKEN: Login password or [Access Token](https://docs.docker.com/docker-hub/access-tokens/), must be `Masked` (Recommend using `Access Token`)
+- DOCKER_HUB_PASS: Login password encoded by base64
 - DOCKER_HUB_NAMESPACE: username or organization
 
 ## Registry CI
@@ -226,7 +226,7 @@ Example
 
 ```yml
 include:
-  - project: 'agrozyme-docker/alpine'
+  - project: 'agrozyme-docker/alpine/alpine'
     ref: master
     file: '/.gitlab-ci.yml'
 ```
@@ -247,8 +247,10 @@ Example
 on: push
 env:
   DOCKER_HUB_USER: ${{ secrets.DOCKER_HUB_USER }}
-  DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
+  DOCKER_HUB_PASS: ${{ secrets.DOCKER_HUB_PASS }}
   DOCKER_HUB_NAMESPACE: ${{ secrets.DOCKER_HUB_NAMESPACE }}
+  DOCKER_HUB_PLATFORM: 'linux/386,linux/amd64,linux/arm/v7,linux/arm64'
+  DOCKER_HUB_API_URL: 'https://hub.docker.com/v2'
   DOCKER_HUB_REGISTRY: 'docker.io'
 jobs:
   build:
@@ -258,13 +260,21 @@ jobs:
       - uses: crazy-max/ghaction-docker-buildx@v1
       - name: script
         run: |
-          export DOCKER_DEFAULT_PLATFORM="linux/386,linux/amd64,linux/arm/v7,linux/arm64"
-          export DOCKER_HUB_IMAGE="${DOCKER_HUB_REGISTRY}/${DOCKER_HUB_NAMESPACE}/${GITHUB_REPOSITORY//*\//}:${GITHUB_REF//*\//}"
-          printenv | grep "^DOCKER_*" | sort
+          sudo apt install -y jq
+          export DOCKER_HUB_REPOSITORY="${DOCKER_HUB_NAMESPACE}/${GITHUB_REPOSITORY//*\//}"
+          export DOCKER_HUB_IMAGE="${DOCKER_HUB_REGISTRY}/${DOCKER_HUB_REPOSITORY}:${GITHUB_REF//*\//}"
+          printenv | grep "^DOCKER_HUB_*" | sort
           printenv | grep "^GITHUB_*" | sort
           docker version
-          echo "${DOCKER_HUB_TOKEN}" | docker login --username="${DOCKER_HUB_USER}" --password-stdin "${DOCKER_HUB_REGISTRY}"
-          docker buildx build --no-cache --pull --push --platform="${DOCKER_DEFAULT_PLATFORM}" --tag="${DOCKER_HUB_IMAGE}" .
+          echo "${DOCKER_HUB_PASS}" | base64 --decode | docker login --username="${DOCKER_HUB_USER}" --password-stdin "${DOCKER_HUB_REGISTRY}"
+          docker buildx build --no-cache --pull --push --platform="${DOCKER_HUB_PLATFORM}" --tag="${DOCKER_HUB_IMAGE}" .
+          export DOCKER_HUB_SHORT_DESCRIPTION=$(curl -s -H "Accept: application/vnd.github.v3+json" -X GET "https://api.github.com/repos/${GITHUB_REPOSITORY}" | jq -r '.description')
+          export DOCKER_HUB_FULL_DESCRIPTION=$(cat README.md)
+          export DOCKER_HUB_DESCRIPTION_DATA=$(jq -n -r -c --arg short "${DOCKER_HUB_SHORT_DESCRIPTION}" --arg full "${DOCKER_HUB_FULL_DESCRIPTION}" '{"description":$short, "full_description":$full}')
+          export DOCKER_HUB_LOGIN_DATA=$(jq -n -r -c --arg username "${DOCKER_HUB_USER}" --arg password "$(echo ${DOCKER_HUB_PASS} | base64 --decode)" '{"username":$username,"password":$password}')
+          export DOCKER_HUB_JWT=$(curl -s -H "Content-Type:application/json" -d "${DOCKER_HUB_LOGIN_DATA}" -X POST "${DOCKER_HUB_API_URL}/users/login/" | jq -r '.token')
+          echo "${DOCKER_HUB_API_URL}/repositories/${DOCKER_HUB_REPOSITORY}"
+          curl -s -H "Content-Type:application/json" -H "Authorization:JWT ${DOCKER_HUB_JWT}" -d "${DOCKER_HUB_DESCRIPTION_DATA}" -X PATCH "${DOCKER_HUB_API_URL}/repositories/${DOCKER_HUB_REPOSITORY}/" | jq '.'
 ```
 
 # BitBucket Pipelines
