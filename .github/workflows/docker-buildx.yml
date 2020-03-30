@@ -4,6 +4,7 @@ env:
   DOCKER_HUB_PASS: ${{ secrets.DOCKER_HUB_PASS }}
   DOCKER_HUB_NAMESPACE: ${{ secrets.DOCKER_HUB_NAMESPACE }}
   DOCKER_HUB_PLATFORM: 'linux/386,linux/amd64,linux/arm/v7,linux/arm64'
+  DOCKER_HUB_API_URL: 'https://hub.docker.com/v2'
   DOCKER_HUB_REGISTRY: 'docker.io'
 jobs:
   build:
