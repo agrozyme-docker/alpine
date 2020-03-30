@@ -13,7 +13,7 @@ jobs:
       - uses: crazy-max/ghaction-docker-buildx@v1
       - name: script
         run: |
-          apt install -y jq
+          sudo apt install -y jq
           export DOCKER_HUB_IMAGE="${DOCKER_HUB_REGISTRY}/${DOCKER_HUB_NAMESPACE}/${GITHUB_REPOSITORY//*\//}:${GITHUB_REF//*\//}"
           printenv | sort
           # printenv | grep "^DOCKER_HUB_*" | sort
