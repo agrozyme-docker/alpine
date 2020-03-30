@@ -22,7 +22,7 @@ build:
   script:
     - echo "${DOCKER_HUB_PASS}" | base64 --decode | docker login --username="${DOCKER_HUB_USER}" --password-stdin "${DOCKER_HUB_REGISTRY}"
     - docker buildx build --no-cache --pull --push --platform="${DOCKER_HUB_PLATFORM}" --tag="${DOCKER_HUB_IMAGE}" .
-    - export DOCKER_HUB_SHORT_DESCRIPTION=$(curl -s -X GET ${CI_API_V4_URL}/projects/${CI_PROJECT_ID} | jq -r '.description')
+    - export DOCKER_HUB_SHORT_DESCRIPTION=$(curl -s -X GET "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}" | jq -r '.description')
     - export DOCKER_HUB_FULL_DESCRIPTION=$(cat README.md)
     - export DOCKER_HUB_DESCRIPTION_DATA=$(jq -n -r -c --arg short "${DOCKER_HUB_SHORT_DESCRIPTION}" --arg full "${DOCKER_HUB_FULL_DESCRIPTION}" '{"description":$short, "full_description":$full}')
     - export DOCKER_HUB_LOGIN_DATA=$(jq -n -r -c --arg username "${DOCKER_HUB_USER}" --arg password "$(echo ${DOCKER_HUB_PASS} | base64 --decode)" '{"username":$username,"password":$password}')
