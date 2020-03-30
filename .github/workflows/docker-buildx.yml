@@ -20,3 +20,4 @@ jobs:
           docker version
           echo "${DOCKER_HUB_PASS}" | base64 --decode | docker login --username="${DOCKER_HUB_USER}" --password-stdin "${DOCKER_HUB_REGISTRY}"
           # docker buildx build --no-cache --pull --push --platform="${DOCKER_HUB_PLATFORM}" --tag="${DOCKER_HUB_IMAGE}" .
+          curl -s -H "Accept: application/vnd.github.v3+json" -X GET "https://api.github.com/repos/${GITHUB_REPOSITORY}"
