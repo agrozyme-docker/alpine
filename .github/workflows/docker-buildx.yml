@@ -25,6 +25,6 @@ jobs:
           export DOCKER_HUB_FULL_DESCRIPTION=$(cat README.md)
           export DOCKER_HUB_DESCRIPTION_DATA=$(jq -n -r -c --arg short "${DOCKER_HUB_SHORT_DESCRIPTION}" --arg full "${DOCKER_HUB_FULL_DESCRIPTION}" '{"description":$short, "full_description":$full}')
           export DOCKER_HUB_LOGIN_DATA=$(jq -n -r -c --arg username "${DOCKER_HUB_USER}" --arg password "$(echo ${DOCKER_HUB_PASS} | base64 --decode)" '{"username":$username,"password":$password}')
-          export DOCKER_HUB_JWT=$(curl -s -H "Content-Type:application/json" -d "${DOCKER_HUB_LOGIN_DATA}" -X POST "${DOCKER_HUB_API_URL}/users/login/" | jq -r '.token')
+          export DOCKER_HUB_JWT=$(curl -s -H "Content-Type:application/json" -d "${DOCKER_HUB_LOGIN_DATA}" -X POST "${DOCKER_HUB_API_URL}/users/login" | jq -r '.token')
           printenv | grep "^DOCKER_HUB_*" | sort
-          curl -s -H "Content-Type:application/json" -H "Authorization:JWT ${DOCKER_HUB_JWT}" -d "${DOCKER_HUB_DESCRIPTION_DATA}" -X PATCH "${DOCKER_HUB_API_URL}/repositories/${DOCKER_HUB_NAMESPACE}/${CI_PROJECT_NAME}/" | jq '.'
+          curl -s -H "Content-Type:application/json" -H "Authorization:JWT ${DOCKER_HUB_JWT}" -d "${DOCKER_HUB_DESCRIPTION_DATA}" -X PATCH "${DOCKER_HUB_API_URL}/repositories/${DOCKER_HUB_NAMESPACE}/${GITHUB_REPOSITORY//*\//}" | jq '.'
